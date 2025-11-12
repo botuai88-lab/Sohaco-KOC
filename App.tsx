@@ -3,12 +3,13 @@ import { KOC, ViewType } from './types';
 import { getKocs, addKoc, updateKoc as apiUpdateKoc, deleteKocs as apiDeleteKocs, batchAddKocs } from './services/googleSheetService';
 import Dashboard from './components/Dashboard';
 import KOCManagement from './components/KOCManagement';
-import { MenuIcon, XIcon, ChartPieIcon, CollectionIcon } from './components/common/Icons';
+import { MenuIcon, XIcon, ChartPieIcon, CollectionIcon, ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from './components/common/Icons';
 
 const App: React.FC = () => {
   const [view, setView] = useState<ViewType>('dashboard');
   const [kocs, setKocs] = useState<KOC[]>([]);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // For mobile
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false); // For desktop
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,21 +59,24 @@ const App: React.FC = () => {
   }> = ({ icon, label, isActive, onClick }) => (
     <li
       onClick={onClick}
+      title={isSidebarCollapsed ? label : undefined}
       className={`flex items-center p-3 my-1 rounded-lg cursor-pointer transition-colors ${
         isActive
           ? 'bg-blue-600 text-white shadow-lg'
           : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-      }`}
+      } ${isSidebarCollapsed ? 'justify-center' : ''}`}
     >
       {icon}
-      <span className="ml-4 font-medium">{label}</span>
+      {!isSidebarCollapsed && <span className="ml-4 font-medium whitespace-nowrap">{label}</span>}
     </li>
   );
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-center p-6 border-b border-gray-700">
-        <h1 className="text-2xl font-bold text-white tracking-wider">SOHA<span className="text-blue-400">KOC</span></h1>
+        <h1 className="text-2xl font-bold text-white tracking-wider">
+          {isSidebarCollapsed ? 'SK' : <>SOHA<span className="text-blue-400">KOC</span></>}
+        </h1>
       </div>
       <nav className="flex-1 px-4 py-6">
         <ul>
@@ -90,9 +94,23 @@ const App: React.FC = () => {
           />
         </ul>
       </nav>
-      <div className="p-4 border-t border-gray-700 text-center text-xs text-gray-400 mt-auto">
-        <p>&copy; 2024 Sohaco Group</p>
+      <div className="px-4 py-4 border-t border-gray-700">
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="w-full flex items-center p-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+            aria-label={isSidebarCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'}
+          >
+            <div className={`flex items-center w-full ${isSidebarCollapsed ? 'justify-center' : ''}`}>
+              {isSidebarCollapsed ? <ChevronDoubleRightIcon /> : <ChevronDoubleLeftIcon />}
+              {!isSidebarCollapsed && <span className="ml-2 text-sm font-medium">Thu gọn</span>}
+            </div>
+          </button>
       </div>
+      {!isSidebarCollapsed && (
+        <div className="px-4 pb-4 text-center text-xs text-gray-400">
+          <p>&copy; 2024 Sohaco Group</p>
+        </div>
+      )}
     </div>
   );
   
@@ -123,7 +141,7 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200">
-      <aside className="hidden lg:block w-64 bg-gray-800 dark:bg-gray-900 shadow-xl">
+      <aside className={`hidden lg:block bg-gray-800 dark:bg-gray-900 shadow-xl transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'w-20' : 'w-64'}`}>
         {sidebarContent}
       </aside>
 

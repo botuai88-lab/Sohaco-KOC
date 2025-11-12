@@ -20,6 +20,15 @@ type GroupedKOC = {
 };
 
 const KOCManagement: React.FC<KOCManagementProps> = ({ kocs, onAddKoc, onUpdateKoc, onDeleteKocs, onBatchAdd }) => {
+    const initialFilters = {
+        brands: [],
+        province: '',
+        mainField: '',
+        kocType: [],
+        followersMin: '',
+        followersMax: '',
+    };
+    
     const [searchTerm, setSearchTerm] = useState('');
     const [filters, setFilters] = useState<{
         brands: Brand[],
@@ -28,14 +37,7 @@ const KOCManagement: React.FC<KOCManagementProps> = ({ kocs, onAddKoc, onUpdateK
         kocType: KOCType[],
         followersMin: string,
         followersMax: string,
-    }>({
-        brands: [],
-        province: '',
-        mainField: '',
-        kocType: [],
-        followersMin: '',
-        followersMax: '',
-    });
+    }>(initialFilters);
     const [isFiltersVisible, setIsFiltersVisible] = useState(false);
     const [sortConfig, setSortConfig] = useState<SortConfig>(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -83,6 +85,10 @@ const KOCManagement: React.FC<KOCManagementProps> = ({ kocs, onAddKoc, onUpdateK
     
     const handleKocTypeFilterChange = (kocType: KOCType) => {
         setFilters(prev => ({...prev, kocType: prev.kocType.includes(kocType) ? prev.kocType.filter(t => t !== kocType) : [...prev.kocType, kocType]}));
+    };
+    
+    const resetFilters = () => {
+        setFilters(initialFilters);
     };
 
     const filteredGroups = useMemo(() => {
@@ -222,8 +228,76 @@ const KOCManagement: React.FC<KOCManagementProps> = ({ kocs, onAddKoc, onUpdateK
                 </div>
                 {/* Filters Panel */}
                 {isFiltersVisible && (
-                    <div className="mt-4 p-4 border-t dark:border-gray-700 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Filter inputs */}
+                    <div className="mt-4 pt-4 border-t dark:border-gray-700 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Thương hiệu phụ trách</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {BRANDS.map(brand => (
+                                        <button
+                                            key={brand}
+                                            onClick={() => handleBrandFilterChange(brand)}
+                                            className={`px-3 py-1 text-sm rounded-full border transition-colors ${
+                                                filters.brands.includes(brand)
+                                                    ? 'bg-blue-600 text-white border-blue-600'
+                                                    : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600'
+                                            }`}
+                                        >
+                                            {brand}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Loại KOC</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {dynamicKocTypes.map(kocType => (
+                                        <button
+                                            key={kocType}
+                                            onClick={() => handleKocTypeFilterChange(kocType)}
+                                            className={`px-3 py-1 text-sm rounded-full border transition-colors ${
+                                                filters.kocType.includes(kocType)
+                                                    ? 'bg-indigo-600 text-white border-indigo-600'
+                                                    : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600'
+                                            }`}
+                                        >
+                                            {kocType}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label htmlFor="province" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tỉnh/Thành phố</label>
+                                <select id="province" name="province" value={filters.province} onChange={handleFilterChange} className="w-full p-2 border rounded-md bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="">Tất cả</option>
+                                    {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label htmlFor="mainField" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Lĩnh vực chính</label>
+                                <select id="mainField" name="mainField" value={filters.mainField} onChange={handleFilterChange} className="w-full p-2 border rounded-md bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                                    <option value="">Tất cả</option>
+                                    {MAIN_FIELDS.map(f => <option key={f} value={f}>{f}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Số lượng Followers</label>
+                                <div className="flex items-center gap-2">
+                                    <input type="number" name="followersMin" placeholder="Từ" value={filters.followersMin} onChange={handleFilterChange} className="w-full p-2 border rounded-md bg-gray-50 dark:bg-gray-700 dark:border-gray-600" />
+                                    <span className="text-gray-500">-</span>
+                                    <input type="number" name="followersMax" placeholder="Đến" value={filters.followersMax} onChange={handleFilterChange} className="w-full p-2 border rounded-md bg-gray-50 dark:bg-gray-700 dark:border-gray-600" />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="flex justify-end">
+                            <button onClick={resetFilters} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
+                                Xóa bộ lọc
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
